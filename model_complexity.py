@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
+
 def complexity_integer(n: int) -> int:
     """Calculates the complexity of an integer n"""
     complexity_integer = 1 + np.ceil(np.log2(abs(n) + 1))
