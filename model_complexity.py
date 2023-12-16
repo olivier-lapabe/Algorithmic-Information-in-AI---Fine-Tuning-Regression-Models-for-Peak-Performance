@@ -38,7 +38,7 @@ def complexity_floatarray(n: np.array, k: int) -> int:
     return complexity_floatarray
 
 
-def complexity_model(F: Pipeline, X: np.array, Y: np.array, k: int) -> int:
+def calculate_model_complexity(F: Pipeline, X: np.array, Y: np.array, k: int) -> int:
     """Calculates the complexity of a trained regression model F"""
     # Calculate the complexity of the model parameters
     parameters = np.insert(F.named_steps['linear_regression'].coef_[0][1:], 0, F.named_steps['linear_regression'].intercept_[0])
@@ -51,36 +51,3 @@ def complexity_model(F: Pipeline, X: np.array, Y: np.array, k: int) -> int:
     # Calculate the complexity of the model
     complexity_model = complexity_parameters + complexity_data_given_model
     return complexity_model
-
-
-# #Testing
-
-# X_2 = np.array([0,1])
-# Y_2 = np.array([0,2])
-# X_3 = np.array([0,1])
-# Y_3 = np.array([0,3])
-# X_test = np.array([1, 2, 3, 4, 5, 6])
-# Y_test = np.array([2, 5, 9, 10, 11, 17])
-
-# F2 = LinearRegression()
-# F2.fit(X_2.reshape(-1, 1), Y_2)
-# # print(F2.coef_)
-# # print(F2.intercept_)
-# # print(complexity_model(F2, X_test.reshape(-1, 1), Y_test, 0))
-
-# F3 = LinearRegression()
-# F3.fit(X_3.reshape(-1, 1), Y_3)
-# # print(F3.coef_)
-# # print(F3.intercept_)
-# print(complexity_model(F3, X_test.reshape(-1, 1), Y_test, 0))
-
-# X_4 = np.array([0.5437328,1.528932])
-# Y_4 = np.array([0.5273329,-3.65729])
-# X_test_f = np.array([1.1543, 2.54322, 3.53, 4.654235, 5.431, 6.86])
-# Y_test_f = np.array([2.5, 5.2532, 9.9, 10.15, 11.632, 17.45325323])
-
-# F4 = LinearRegression()
-# F4.fit(X_4.reshape(-1, 1), Y_4)
-# # print(F4.coef_)
-# # print(F4.intercept_)
-# # print(complexity_model(F4, X_test_f.reshape(-1, 1), Y_test_f, 7))
