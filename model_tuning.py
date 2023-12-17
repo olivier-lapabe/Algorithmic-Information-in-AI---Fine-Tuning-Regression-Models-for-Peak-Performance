@@ -100,7 +100,7 @@ def plot_complexities(classifiers_groups, title, ylabel):
         complexities = [getattr(p[0], ylabel) for p in classifiers]
 
         # Plotting
-        ax.plot(names, complexities, marker='o', linestyle='-', color=np.random.rand(3,))
+        ax.plot(names[1:], complexities[1:], marker='o', linestyle='-', color='blue')
         ax.set_xlabel('Regression Classifier Degree')
         ax.set_ylabel(ylabel)
         ax.set_title(title)
@@ -113,25 +113,43 @@ def main():
     x, y = generate_synthetic_data()
     plot_data(x, y)
 
-    X_train, X_test, Y_train, Y_test = train_test_split(x, y, train_size=0.8)
-    polynmes_classifiers, log_classifiers, exp_classifiers = [], [], []
+    X_train, X_test, Y_train, Y_test = train_test_split(x, y, train_size=0.1)
+    polynomes_classifiers, log_classifiers, exp_classifiers = [], [], []
 
     for i in range(20):
-        polynmes_classifiers.append([RegressionClassifier(create_pipeline(i), f"Poly-{i}", deg)
+        polynomes_classifiers.append([RegressionClassifier(create_pipeline(i), f"Poly-{i}", deg)
                                       for deg in range(5)])
         log_classifiers.append([RegressionClassifier(create_pipeline(i, LogTransformer), f"Log-{i}", deg)
                                 for deg in range(1, 5)])
         exp_classifiers.append([RegressionClassifier(create_pipeline(i, ExpTransformer), f"Exp-{i}", deg)
                                 for deg in range(1, 5)])
 
-    for classifier_list in [polynmes_classifiers, log_classifiers, exp_classifiers]:
+    for classifier_list in [polynomes_classifiers, log_classifiers, exp_classifiers]:
         for classifiers in classifier_list:
             for classifier in classifiers:
                 classifier.fit_predict(X_train, Y_train, X_test, Y_test)
 
-    plot_complexities([polynmes_classifiers, log_classifiers, exp_classifiers], 'Model Complexity vs Degree',
+    plot_complexities([polynomes_classifiers, log_classifiers, exp_classifiers], 'Model Complexity vs Degree',
                       'complexity')
-    plot_complexities([polynmes_classifiers, log_classifiers, exp_classifiers], 'Model MSE vs Degree', 'mse')
+    plot_complexities([polynomes_classifiers, log_classifiers, exp_classifiers], 'Model MSE vs Degree', 'mse')
+
+
+    ### Ajouté par Goatstat
+    parameters = {}
+    for i in range(20):
+        parameters[i] = np.insert(polynomes_classifiers[i][0].pipeline.named_steps['linear_regression'].coef_[0][1:], 0, polynomes_classifiers[i][0].pipeline.named_steps['linear_regression'].intercept_[0])
+
+    x = StandardScaler().fit_transform(x)
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.scatter(x, y, color='blue', label='Data points', s=10)
+    plt.scatter(x, parameters[0][0] * np.ones(x.shape[0]), color=(0.56, 0.93, 0.56), s=5)
+    plt.scatter(x, parameters[1][0] + parameters[1][1] * x, color=(0.56, 0.93, 0.56), s=5)
+    plt.scatter(x, parameters[2][0] + parameters[2][1] * x + parameters[2][2] * x**2, color=(0.56, 0.93, 0.56), s=5)
+    plt.scatter(x, parameters[3][0] + parameters[3][1] * x + parameters[3][2] * x**2 + parameters[3][3] * x**3, color=(0.56, 0.93, 0.56), s=5)
+    plt.scatter(x, parameters[4][0] + parameters[4][1] * x + parameters[4][2] * x**2 + parameters[4][3] * x**3 + parameters[4][4] * x**4, color=(0.56, 0.93, 0.56), s=5)
+    plt.show()
 
 
 if __name__ == "__main__":
