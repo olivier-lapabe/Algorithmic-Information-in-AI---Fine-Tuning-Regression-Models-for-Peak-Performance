@@ -200,8 +200,6 @@ def main():
     #print(parameters_exp[1])
     #print(parameters_log[1])
 
-    #x = StandardScaler().fit_transform(x)
-
     # Plotting
     plt.figure(figsize=(10, 6))
     plt.scatter(x, y, color='blue', label='Data points', s=10)
