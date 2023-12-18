@@ -73,43 +73,43 @@ def generate_synthetic_data(d):
     if d == 1:
         np.random.seed(0)
         x = np.random.rand(1000, 1) * 10 - 5
-        noise = np.random.randn(1000, 1) * 10
-        y = 1 - 4*x + 1*x**2 + noise
-        return x, y
-    
-    if d == 2:
-        np.random.seed(0)
-        x = np.random.rand(1000, 1) * 10 - 5
         noise = np.random.randn(1000, 1) * 100
         y = 1 + 2*x + 3*x**2 - 4*x**3 + noise
         return x, y
-
-    if d == 3:
-        np.random.seed(0)
-        x = np.random.rand(1000, 1) * 10 - 5
-        noise = np.random.randn(1000, 1) * 100
-        y = 1 - 20*x + 0.3*x**2 + 0.4*x**3 + 1*x**4 + noise
-        return x, y
     
-    if d == 4:
+    if d == 2:
         np.random.seed(0)
         x = np.random.rand(1000, 1) - 0.5
         noise = np.random.randn(1000, 1)
         y = 1 - 1*np.exp(x) + 2*np.exp(x)**2 - 4*np.exp(x)**3 + noise
         return x, y
     
-    if d == 5:
-        np.random.seed(0)
-        x = np.random.rand(1000, 1)
-        noise = np.random.randn(1000, 1) * 10
-        y = 1 - 1*np.log(x) + 2*np.log(x)**2 + noise
-        return x, y
-
-    else:
+    if d == 3:
         np.random.seed(0)
         x = np.random.rand(1000, 1) - 0.5
         noise = np.random.randn(1000, 1) * 5
         y = 1 + 2*x + 3*np.exp(x)**2 - 10*np.exp(x)**3 + noise
+        return x, y
+
+    if d == 4:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) * 10 - 5
+        noise = np.random.randn(1000, 1) * 10
+        y = 1 - 4*x + 1*x**2 + noise
+        return x, y
+    
+    if d == 5:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) * 10 - 5
+        noise = np.random.randn(1000, 1) * 100
+        y = 1 - 20*x + 0.3*x**2 + 0.4*x**3 + 1*x**4 + noise
+        return x, y
+
+    if d == 6:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1)
+        noise = np.random.randn(1000, 1) * 10
+        y = 1 - 1*np.log(x) + 2*np.log(x)**2 + noise
         return x, y
 
 
@@ -149,7 +149,7 @@ def plot_complexities(classifiers_groups, title, ylabel):
 
 
 def main():
-    d = 6
+    d = 1
     x, y = generate_synthetic_data(d)
     plot_data(x, y)
 
@@ -203,11 +203,11 @@ def main():
     plt.scatter(x, y, color='blue', label='Data points', s=10)
     #plt.scatter(x, parameters_poly[0][0] * np.ones(x.shape[0]), color=(0.56, 0.93, 0.56), s=5)
     #plt.scatter(x, parameters_poly[1][0] + parameters_poly[1][1] * x, color=(0.56, 0.93, 0.56), s=5)
-    plt.scatter(x, parameters_poly[2][0] + parameters_poly[2][1] * x + parameters_poly[2][2] * x**2, color=(0.56, 0.93, 0.56), s=5)
-    #plt.scatter(x, parameters_poly[3][0] + parameters_poly[3][1] * x + parameters_poly[3][2] * x**2 + parameters_poly[3][3] * x**3, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_poly[2][0] + parameters_poly[2][1] * x + parameters_poly[2][2] * x**2, color=(0.56, 0.93, 0.56), s=5)
+    plt.scatter(x, parameters_poly[3][0] + parameters_poly[3][1] * x + parameters_poly[3][2] * x**2 + parameters_poly[3][3] * x**3, color=(0.56, 0.93, 0.56), s=5)
     #plt.scatter(x, parameters_poly[4][0] + parameters_poly[4][1] * x + parameters_poly[4][2] * x**2 + parameters_poly[4][3] * x**3 + parameters_poly[4][4] * x**4, color=(0.56, 0.93, 0.56), s=5)
     #plt.scatter(x, parameters_exp[1][0] + parameters_exp[1][1] * np.exp(x), color=(0.56, 0.93, 0.56), s=5)
-    plt.scatter(x, parameters_exp[2][0] + parameters_exp[2][1] * np.exp(x) + parameters_exp[2][2] * np.exp(x)**2, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_exp[2][0] + parameters_exp[2][1] * np.exp(x) + parameters_exp[2][2] * np.exp(x)**2, color=(0.56, 0.93, 0.56), s=5)
     #plt.scatter(x, parameters_exp[3][0] + parameters_exp[3][1] * np.exp(x) + parameters_exp[3][2] * np.exp(x)**2 + parameters_exp[3][3] * np.exp(x)**3, color=(0.56, 0.93, 0.56), s=5)
     #plt.scatter(x, parameters_log[1][0] + parameters_log[1][1] * np.log(x), color=(0.56, 0.93, 0.56), s=5)
     #plt.scatter(x, parameters_log[2][0] + parameters_log[2][1] * np.log(x) + parameters_log[2][2] * np.log(x)**2, color=(0.56, 0.93, 0.56), s=5)
