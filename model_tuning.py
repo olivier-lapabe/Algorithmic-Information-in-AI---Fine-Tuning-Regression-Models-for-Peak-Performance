@@ -18,14 +18,14 @@ class LogTransformer(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         return np.log(np.where(X <= 0, np.min(X[X > 0]), X))
-
+       
 
 class ExpTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
 
     def transform(self, X, y=None):
-        return np.exp(X / np.max(X))
+        return np.exp(X)
 
 
 # -----------------------------------------------------------------------------
@@ -54,10 +54,12 @@ class RegressionClassifier:
 # -----------------------------------------------------------------------------
 def create_pipeline(degree, transformer=None):
     steps = []
+    #steps.append(('scaler', StandardScaler()))
+
     if transformer:
         steps.append(('transformer', transformer()))
+
     steps.extend([
-        ('scaler', StandardScaler()),
         ('poly_features', PolynomialFeatures(degree=degree)),
         ('linear_regression', LinearRegression())
     ])
@@ -67,13 +69,55 @@ def create_pipeline(degree, transformer=None):
 # -----------------------------------------------------------------------------
 # generate_synthetic_data
 # -----------------------------------------------------------------------------
-def generate_synthetic_data():
-    np.random.seed(0)
-    x = np.random.rand(1000, 1) * 10 - 5
-    noise = np.random.randn(1000, 1) * 100
-    y = 1 + 2*x + 3*x**2 - 4*x**3 + noise
-    return x, y
+def generate_synthetic_data(d):
+    if d == 1:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) * 10 - 5
+        noise = np.random.randn(1000, 1) * 100
+        y = 1 - 4*x + 1*x**2 + noise
+        return x, y
+    
+    if d == 2:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) * 10 - 5
+        noise = np.random.randn(1000, 1) * 100
+        y = 1 + 2*x + 3*x**2 - 4*x**3 + noise
+        return x, y
 
+    if d == 3:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) * 10 - 5
+        noise = np.random.randn(1000, 1) * 100
+        y = 1 - 20*x + 0.3*x**2 + 0.4*x**3 + 1*x**4 + noise
+        return x, y
+    
+    if d == 4:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) * 10
+        noise = np.random.randn(1000, 1) * 10
+        y = 1 - 5*np.log(x) + 2*np.log(x)**2 - 4*np.log(x)**3 + noise
+        return x, y
+    
+    if d == 5:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) - 0.5
+        noise = np.random.randn(1000, 1) * 1
+        y = 1 + 2*x + 3*np.exp(x)**2 - 1*np.exp(x)**3 + noise
+        return x, y
+
+    if d ==6 :
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) - 0.5
+        noise = np.random.randn(1000, 1) /10
+        y = np.exp(x) + noise
+        return x, y
+    
+    else:
+        np.random.seed(0)
+        x = np.random.rand(1000, 1) + 100
+        noise = np.random.randn(1000, 1) / 100
+        y = np.log(x) + noise
+        return x, y
 
 # -----------------------------------------------------------------------------
 # plot_data
@@ -91,7 +135,7 @@ def plot_data(x, y):
 # plot_complexities
 # -----------------------------------------------------------------------------
 def plot_complexities(classifiers_groups, title, ylabel):
-    fig, axes = plt.subplots(nrows=len(classifiers_groups), ncols=1, figsize=(15, 5 * len(classifiers_groups)))
+    fig, axes = plt.subplots(nrows=1, ncols=len(classifiers_groups), figsize=(5*len(classifiers_groups), 5))
 
     for classifiers, ax in zip(classifiers_groups, axes.flatten()):
         # For each first element in each sublist, extract names & complexity
@@ -101,28 +145,30 @@ def plot_complexities(classifiers_groups, title, ylabel):
 
         # Plotting
         ax.plot(names[1:], complexities[1:], marker='o', linestyle='-', color='blue')
-        ax.set_xlabel('Regression Classifier Degree')
+        ax.set_xlabel(f'Regression Classifier Degree')
         ax.set_ylabel(ylabel)
         ax.set_title(title)
+        ax.set_xticklabels(names[1:], rotation=45)
 
     plt.tight_layout()
     plt.show()
 
 
 def main():
-    x, y = generate_synthetic_data()
+    d = 2
+    x, y = generate_synthetic_data(d)
     plot_data(x, y)
 
     X_train, X_test, Y_train, Y_test = train_test_split(x, y, train_size=0.1)
     polynomes_classifiers, log_classifiers, exp_classifiers = [], [], []
 
-    for i in range(20):
+    for i in range(11):
         polynomes_classifiers.append([RegressionClassifier(create_pipeline(i), f"Poly-{i}", deg)
                                       for deg in range(5)])
         log_classifiers.append([RegressionClassifier(create_pipeline(i, LogTransformer), f"Log-{i}", deg)
-                                for deg in range(1, 5)])
+                                for deg in range(5)])
         exp_classifiers.append([RegressionClassifier(create_pipeline(i, ExpTransformer), f"Exp-{i}", deg)
-                                for deg in range(1, 5)])
+                                for deg in range(5)])
 
     for classifier_list in [polynomes_classifiers, log_classifiers, exp_classifiers]:
         for classifiers in classifier_list:
@@ -134,21 +180,39 @@ def main():
     plot_complexities([polynomes_classifiers, log_classifiers, exp_classifiers], 'Model MSE vs Degree', 'mse')
 
 
-    ### Ajouté par Goatstat
-    parameters = {}
-    for i in range(20):
-        parameters[i] = np.insert(polynomes_classifiers[i][0].pipeline.named_steps['linear_regression'].coef_[0][1:], 0, polynomes_classifiers[i][0].pipeline.named_steps['linear_regression'].intercept_[0])
+    ### Plotting of dataset and polynomial fitting curves
+    parameters_poly = {}
+    for i in range(11):
+        parameters_poly[i] = np.insert(polynomes_classifiers[i][0].pipeline.named_steps['linear_regression'].coef_[0][1:], 0, polynomes_classifiers[i][0].pipeline.named_steps['linear_regression'].intercept_[0])
 
-    x = StandardScaler().fit_transform(x)
+    parameters_exp = {}
+    for i in range(11):
+        parameters_exp[i] = np.insert(exp_classifiers[i][0].pipeline.named_steps['linear_regression'].coef_[0][1:], 0, exp_classifiers[i][0].pipeline.named_steps['linear_regression'].intercept_[0])
+
+    parameters_log = {}
+    for i in range(11):
+        parameters_log[i] = np.insert(log_classifiers[i][0].pipeline.named_steps['linear_regression'].coef_[0][1:], 0, log_classifiers[i][0].pipeline.named_steps['linear_regression'].intercept_[0])
+
+    #print(polynomes_classifiers[1][0].complexity)
+    #print(exp_classifiers[1][0].complexity)
+    
+    #print(parameters_poly[1])
+    #print(parameters_exp[1])
+    #print(parameters_log[1])
+
+    #x = StandardScaler().fit_transform(x)
 
     # Plotting
     plt.figure(figsize=(10, 6))
     plt.scatter(x, y, color='blue', label='Data points', s=10)
-    plt.scatter(x, parameters[0][0] * np.ones(x.shape[0]), color=(0.56, 0.93, 0.56), s=5)
-    plt.scatter(x, parameters[1][0] + parameters[1][1] * x, color=(0.56, 0.93, 0.56), s=5)
-    plt.scatter(x, parameters[2][0] + parameters[2][1] * x + parameters[2][2] * x**2, color=(0.56, 0.93, 0.56), s=5)
-    plt.scatter(x, parameters[3][0] + parameters[3][1] * x + parameters[3][2] * x**2 + parameters[3][3] * x**3, color=(0.56, 0.93, 0.56), s=5)
-    plt.scatter(x, parameters[4][0] + parameters[4][1] * x + parameters[4][2] * x**2 + parameters[4][3] * x**3 + parameters[4][4] * x**4, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_poly[0][0] * np.ones(x.shape[0]), color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_poly[1][0] + parameters_poly[1][1] * x, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_poly[2][0] + parameters_poly[2][1] * x + parameters_poly[2][2] * x**2, color=(0.56, 0.93, 0.56), s=5)
+    plt.scatter(x, parameters_poly[3][0] + parameters_poly[3][1] * x + parameters_poly[3][2] * x**2 + parameters_poly[3][3] * x**3, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_poly[4][0] + parameters_poly[4][1] * x + parameters_poly[4][2] * x**2 + parameters_poly[4][3] * x**3 + parameters_poly[4][4] * x**4, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_exp[1][0] + parameters_exp[1][1] * np.exp(x), color='red', s=5)
+    #plt.scatter(x, parameters_exp[3][0] + parameters_exp[3][1] * np.exp(x) + parameters_exp[3][2] * np.exp(x)**2 + parameters_exp[3][3] * np.exp(x)**3, color='red', s=5)
+    #plt.scatter(x, parameters_log[1][0] + parameters_log[1][1] * np.log(x), color='red', s=5)
     plt.show()
 
 
