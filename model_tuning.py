@@ -12,20 +12,20 @@ from model_complexity import calculate_model_complexity
 # -----------------------------------------------------------------------------
 # Custom transformers
 # -----------------------------------------------------------------------------
-class LogTransformer(BaseEstimator, TransformerMixin):
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X, y=None):
-        return np.log(np.where(X <= 0, np.min(X[X > 0]), X))
-       
-
 class ExpTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
 
     def transform(self, X, y=None):
         return np.exp(X)
+    
+
+class LogTransformer(BaseEstimator, TransformerMixin):
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        return np.log(np.where(X <= 0, np.min(X[X > 0]), X))
 
 
 # -----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ def generate_synthetic_data(d):
     if d == 1:
         np.random.seed(0)
         x = np.random.rand(1000, 1) * 10 - 5
-        noise = np.random.randn(1000, 1) * 100
+        noise = np.random.randn(1000, 1) * 10
         y = 1 - 4*x + 1*x**2 + noise
         return x, y
     
@@ -93,31 +93,25 @@ def generate_synthetic_data(d):
     
     if d == 4:
         np.random.seed(0)
-        x = np.random.rand(1000, 1) * 10
-        noise = np.random.randn(1000, 1) * 10
-        y = 1 - 5*np.log(x) + 2*np.log(x)**2 - 4*np.log(x)**3 + noise
+        x = np.random.rand(1000, 1) - 0.5
+        noise = np.random.randn(1000, 1)
+        y = 1 - 1*np.exp(x) + 2*np.exp(x)**2 - 4*np.exp(x)**3 + noise
         return x, y
     
     if d == 5:
         np.random.seed(0)
-        x = np.random.rand(1000, 1) - 0.5
-        noise = np.random.randn(1000, 1) * 1
-        y = 1 + 2*x + 3*np.exp(x)**2 - 1*np.exp(x)**3 + noise
+        x = np.random.rand(1000, 1)
+        noise = np.random.randn(1000, 1) * 10
+        y = 1 - 1*np.log(x) + 2*np.log(x)**2 + noise
         return x, y
 
-    if d ==6 :
-        np.random.seed(0)
-        x = np.random.rand(1000, 1) - 0.5
-        noise = np.random.randn(1000, 1) /10
-        y = np.exp(x) + noise
-        return x, y
-    
     else:
         np.random.seed(0)
-        x = np.random.rand(1000, 1) + 100
-        noise = np.random.randn(1000, 1) / 100
-        y = np.log(x) + noise
+        x = np.random.rand(1000, 1) - 0.5
+        noise = np.random.randn(1000, 1) * 5
+        y = 1 + 2*x + 3*np.exp(x)**2 - 10*np.exp(x)**3 + noise
         return x, y
+
 
 # -----------------------------------------------------------------------------
 # plot_data
@@ -155,7 +149,7 @@ def plot_complexities(classifiers_groups, title, ylabel):
 
 
 def main():
-    d = 2
+    d = 6
     x, y = generate_synthetic_data(d)
     plot_data(x, y)
 
@@ -165,19 +159,20 @@ def main():
     for i in range(11):
         polynomes_classifiers.append([RegressionClassifier(create_pipeline(i), f"Poly-{i}", deg)
                                       for deg in range(5)])
-        log_classifiers.append([RegressionClassifier(create_pipeline(i, LogTransformer), f"Log-{i}", deg)
-                                for deg in range(5)])
         exp_classifiers.append([RegressionClassifier(create_pipeline(i, ExpTransformer), f"Exp-{i}", deg)
                                 for deg in range(5)])
+        log_classifiers.append([RegressionClassifier(create_pipeline(i, LogTransformer), f"Log-{i}", deg)
+                                for deg in range(5)])
+        
 
     for classifier_list in [polynomes_classifiers, log_classifiers, exp_classifiers]:
         for classifiers in classifier_list:
             for classifier in classifiers:
                 classifier.fit_predict(X_train, Y_train, X_test, Y_test)
 
-    plot_complexities([polynomes_classifiers, log_classifiers, exp_classifiers], 'Model Complexity vs Degree',
+    plot_complexities([polynomes_classifiers, exp_classifiers, log_classifiers], 'Model Complexity vs Degree',
                       'complexity')
-    plot_complexities([polynomes_classifiers, log_classifiers, exp_classifiers], 'Model MSE vs Degree', 'mse')
+    plot_complexities([polynomes_classifiers, exp_classifiers, log_classifiers], 'Model MSE vs Degree', 'mse')
 
 
     ### Plotting of dataset and polynomial fitting curves
@@ -193,8 +188,11 @@ def main():
     for i in range(11):
         parameters_log[i] = np.insert(log_classifiers[i][0].pipeline.named_steps['linear_regression'].coef_[0][1:], 0, log_classifiers[i][0].pipeline.named_steps['linear_regression'].intercept_[0])
 
-    #print(polynomes_classifiers[1][0].complexity)
-    #print(exp_classifiers[1][0].complexity)
+    print(polynomes_classifiers[2][0].complexity)
+    print(exp_classifiers[2][0].complexity)
+
+    print(polynomes_classifiers[3][0].mse)
+    print(exp_classifiers[2][0].mse)
     
     #print(parameters_poly[1])
     #print(parameters_exp[1])
@@ -205,12 +203,15 @@ def main():
     plt.scatter(x, y, color='blue', label='Data points', s=10)
     #plt.scatter(x, parameters_poly[0][0] * np.ones(x.shape[0]), color=(0.56, 0.93, 0.56), s=5)
     #plt.scatter(x, parameters_poly[1][0] + parameters_poly[1][1] * x, color=(0.56, 0.93, 0.56), s=5)
-    #plt.scatter(x, parameters_poly[2][0] + parameters_poly[2][1] * x + parameters_poly[2][2] * x**2, color=(0.56, 0.93, 0.56), s=5)
-    plt.scatter(x, parameters_poly[3][0] + parameters_poly[3][1] * x + parameters_poly[3][2] * x**2 + parameters_poly[3][3] * x**3, color=(0.56, 0.93, 0.56), s=5)
+    plt.scatter(x, parameters_poly[2][0] + parameters_poly[2][1] * x + parameters_poly[2][2] * x**2, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_poly[3][0] + parameters_poly[3][1] * x + parameters_poly[3][2] * x**2 + parameters_poly[3][3] * x**3, color=(0.56, 0.93, 0.56), s=5)
     #plt.scatter(x, parameters_poly[4][0] + parameters_poly[4][1] * x + parameters_poly[4][2] * x**2 + parameters_poly[4][3] * x**3 + parameters_poly[4][4] * x**4, color=(0.56, 0.93, 0.56), s=5)
-    #plt.scatter(x, parameters_exp[1][0] + parameters_exp[1][1] * np.exp(x), color='red', s=5)
-    #plt.scatter(x, parameters_exp[3][0] + parameters_exp[3][1] * np.exp(x) + parameters_exp[3][2] * np.exp(x)**2 + parameters_exp[3][3] * np.exp(x)**3, color='red', s=5)
-    #plt.scatter(x, parameters_log[1][0] + parameters_log[1][1] * np.log(x), color='red', s=5)
+    #plt.scatter(x, parameters_exp[1][0] + parameters_exp[1][1] * np.exp(x), color=(0.56, 0.93, 0.56), s=5)
+    plt.scatter(x, parameters_exp[2][0] + parameters_exp[2][1] * np.exp(x) + parameters_exp[2][2] * np.exp(x)**2, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_exp[3][0] + parameters_exp[3][1] * np.exp(x) + parameters_exp[3][2] * np.exp(x)**2 + parameters_exp[3][3] * np.exp(x)**3, color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_log[1][0] + parameters_log[1][1] * np.log(x), color=(0.56, 0.93, 0.56), s=5)
+    #plt.scatter(x, parameters_log[2][0] + parameters_log[2][1] * np.log(x) + parameters_log[2][2] * np.log(x)**2, color=(0.56, 0.93, 0.56), s=5)
+
     plt.show()
 
 
