@@ -78,8 +78,8 @@ def generate_synthetic_data(d):
     if d == 3:
         np.random.seed(0)
         x = np.random.rand(1000, 1) - 0.5
-        noise = np.random.randn(1000, 1) * 5
-        y = 1 + 2 * x + 3 * np.exp(x) ** 2 - 10 * np.exp(x) ** 3 + noise
+        noise = np.random.randn(1000, 1) * 10
+        y = 1 - 3 * x ** 2 - 3 * np.exp(x) ** 2 + noise
         return x, y
 
     if d == 4:
