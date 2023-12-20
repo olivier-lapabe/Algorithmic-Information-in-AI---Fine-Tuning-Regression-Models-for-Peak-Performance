@@ -125,4 +125,3 @@ class ModelRunner:
         plot_complexities([self.polynomes_classifiers, self.exp_classifiers, self.log_classifiers], 'Model Complexity vs Degree',
                           'complexity')
         plot_complexities([self.polynomes_classifiers, self.exp_classifiers, self.log_classifiers], 'Model MSE vs Degree', 'mse')
-
